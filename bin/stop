@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+script_dir=$(cd $(dirname $0) || exit 1; pwd)
+
+ROOT_DIR=$(realpath "${script_dir}/..")
+TMP_DIR=$(realpath "${ROOT_DIR}/tmp")
+VIRTUALENV_DIR=$(realpath "${ROOT_DIR}/env")
+UWSGI_EXECUTABLE=${VIRTUALENV_DIR}/bin/uwsgi
+
+PIDFILE="${TMP_DIR}/slicer_extensions_legacy_webapp.pid"
+
+if [ -e "${PIDFILE}" ] && (ps -u $(whoami) -opid= |
+                           grep -P "^\s*$(cat ${PIDFILE})$" &> /dev/null); then
+  ${UWSGI_EXECUTABLE} --stop ${PIDFILE}
+  rm  ${PIDFILE}
+  exit 0
+fi
+
+echo "No PID file"
+exit 99

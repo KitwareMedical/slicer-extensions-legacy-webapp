@@ -1,7 +1,10 @@
 # This project #
 ################
+bin/.start_environment
+env/
 server/assets/*
 !server/assets/.keep
+tmp/
 
 # Python #
 ##########
