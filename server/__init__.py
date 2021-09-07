@@ -30,13 +30,11 @@ def proxy(host, path):
         for name, value in response.raw.headers.items()
         if name.lower() not in excluded_headers
     }
-    return (response.content, response.status_code, headers)
+    return response.content, response.status_code, headers
 
 
 @app.route("/api/json")
 def retrieve_extension_metadata():
-    request = flask.request
-
     extension_id = request.args.get("extension_id", None)
     app.logger.info("extension_id [%s]" % extension_id)
 
@@ -101,7 +99,6 @@ def retrieve_extension_metadata():
 
 @app.route("/download")
 def download_extension():
-    request = flask.request
     extension_id = request.args.get("items", None)
     if extension_id is None:
         return flask.abort(404)
