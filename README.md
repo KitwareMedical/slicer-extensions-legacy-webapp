@@ -4,7 +4,9 @@ Flask web application implementing legacy REST API for Slicer applications suppo
 
 ## Current deployments
 
-_Coming soon_
+| URL | Description |
+|-----|-------------|
+| https://slicer.kitware.com/ | Slicer legacy extensions catalog server hosted and maintained by Kitware.|
 
 ## Repository layout
 
