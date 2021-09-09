@@ -23,9 +23,11 @@ This section describes main files and directories available in this repository.
 
     | Name                              | Description |
     |-----------------------------------|-------------|
+    | `download-static-assets.sh`       | Download up-to-date static assets from [KitwareMedical/slicer-extensions-webapp@slicer-kitware-com][branch-slicer-kitware-com] branch. |
     | `start`                           | Shell script for starting the download Flask web application. |
     | `stop`                            | Shell script for stopping the download Flask web application. |
 
+[branch-slicer-kitware-com]: https://github.com/KitwareMedical/slicer-extensions-webapp/tree/slicer-kitware-com
 
 ## Getting started with development
 
