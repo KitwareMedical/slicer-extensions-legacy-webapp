@@ -34,7 +34,7 @@ def proxy(host, path):
     return response.content, response.status_code, headers
 
 
-@app.route("/api/json")
+@app.route("/midas3/api/json")
 def retrieve_extension_metadata():
     extension_id = request.args.get("extension_id", None)
     app.logger.info("extension_id [%s]" % extension_id)
@@ -98,7 +98,7 @@ def retrieve_extension_metadata():
         })
 
 
-@app.route("/download")
+@app.route("/midas3/download")
 def download_extension():
     extension_id = request.args.get("items", None)
     if extension_id is None:
