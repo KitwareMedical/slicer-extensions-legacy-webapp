@@ -33,17 +33,29 @@ This section describes main files and directories available in this repository.
 
 1. Create a virtual environment and install prerequisites
 
-  ```
-  cd slicer-extensions-legacy-webapp
-  python -m venv env
-  ./env/bin/python -m pip install -r requirements.txt -r requirements-dev.txt
-  ```
+    ```
+    cd slicer-extensions-legacy-webapp
+    python -m venv env
+    ./env/bin/python -m pip install -r requirements.txt -r requirements-dev.txt
+    ```
 
-2. Start the server
+2. Download up-to-date static assets from [KitwareMedical/slicer-extensions-webapp@slicer-kitware-com][branch-slicer-kitware-com] branch.
 
-  ```
-  ./bin/start
-  ```
+    ```
+    ./bin/download-static-assets.sh
+    ```
+
+3. Setup the startup environment
+
+    ```
+    echo "export SLICER_EXTENSIONS_LEGACY_WEBAPP_DEBUG=True" >> ./bin/.start_environment
+    ```
+
+4. Start the server
+  
+    ```
+    ./bin/start
+    ```
 
 ## History
 
