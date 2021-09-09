@@ -57,6 +57,34 @@ This section describes main files and directories available in this repository.
     ./bin/start
     ```
 
+To simultaneously develop the web application frontend and the REST API implemented in
+the Flask application, consider the following steps:
+
+1. Start the development server associated with [slicer-extensions-webapp](https://github.com/KitwareMedical/slicer-extensions-webapp)
+
+    ```
+    git clone git@github.com:KitwareMedical/slicer-extensions-webapp
+    cd slicer-extensions-webapp
+    yarn install
+    yarn serve
+    ```
+
+    Keep track of the development server URL. For example, `http://localhost:8082`.
+
+2. Update the startup environment
+
+    ```
+    echo "export FLASK_ENV=development" >> ./bin/.start_environment
+    echo "export SLICER_EXTENSIONS_WEBAPP_SERVER_HOST=http://localhost:8082" >> ./bin/.start_environment
+    ```
+
+3. Restart the server
+
+    ```
+    ./bin/stop
+    ./bin/start
+    ```
+
 ## Startup environment
 
 These variables may be exported in the file `./bin/.start_environment` to customize environment
