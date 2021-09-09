@@ -57,6 +57,19 @@ This section describes main files and directories available in this repository.
     ./bin/start
     ```
 
+## Startup environment
+
+These variables may be exported in the file `./bin/.start_environment` to customize environment
+associated with the `./bin/start` script.
+
+| Variable Name | Description | Default |
+|---------------|-------------|---------|
+| `FLASK_ENV` | Setting to `development` will proxy assets from `SLICER_EXTENSIONS_WEBAPP_SERVER_HOST`. Supported values are `production` or `development`. | `production` |
+| `HTTP_PORT` | Port associated with `SLICER_EXTENSIONS_LEGACY_WEBAPP_HOSTNAME`. | `53693` |
+| `SLICER_EXTENSIONS_LEGACY_WEBAPP_DEBUG` | If `True`, show unhandled exceptions and reload server when code changes. For more details, see [here](https://flask.palletsprojects.com/en/2.0.x/config/#DEBUG). | `False` |
+| `SLICER_EXTENSIONS_LEGACY_WEBAPP_HOSTNAME` | URL of the Slicer legacy extensions catalog server. | `http://127.0.0.1:<HTTP_PORT>` |
+| `SLICER_EXTENSIONS_WEBAPP_SERVER_HOST` | URL of the host serving [slicer-extensions-webapp](https://github.com/KitwareMedical/slicer-extensions-webapp#readme) used on `FLASK_ENV` is set to `development`. | `http://localhost:8080` |
+
 ## History
 
 The original implementation was based on the `slicerpackages` and `slicerappstore` midas plugins
