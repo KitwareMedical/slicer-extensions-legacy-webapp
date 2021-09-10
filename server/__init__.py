@@ -34,16 +34,59 @@ def proxy(host, path):
     return response.content, response.status_code, headers
 
 
+def _is_valid_objectid(oid):
+    # Inspired from bson.objectid.ObjectId.__validate()
+    if not isinstance(oid, str):
+        return False
+    if not len(oid) == 24:
+        return False
+    try:
+        bytes.fromhex(oid)
+    except ValueError:
+        return False
+    return True
+
+
+class MidasAPIException(Exception):
+    def __init__(self, message, code=None):
+        super().__init__()
+        self.message = " ".join(filter(bool, message)) if not isinstance(message, str) else message
+        self.code = code
+
+
+@app.errorhandler(MidasAPIException)
+def midas_api_exception(exc):
+    failure_code = exc.code
+    if exc.code is None:
+        failure_code = -1
+    return {
+        "stat": "fail",
+        "message": exc.message,
+        "code": failure_code,
+    }
+
+
 @app.route("/midas3/api/json")
 def midas_api_json():
     method = request.args.get("method", None)
-    if method == "midas.slicerpackages.extension.list":
-        return midas_slicerpackages_extension_list()
-    else:
-        return flask.abort(404)
+
+    if method is None:
+        raise MidasAPIException("Parameter 'method' must be set.")
+
+    method_function = {
+        "midas.slicerpackages.extension.list": midas_slicerpackages_extension_list,
+    }.get(method, None)
+
+    if method_function is None:
+        raise MidasAPIException(f'Server error. Requested method {method} does not exist.')
+
+    return method_function()
 
 
 def midas_slicerpackages_extension_list():
+    names_1 = ["extension_id"]
+    names_2 = ["arch", "os", "productname", "slicer_revision"]
+
     extension_id = request.args.get("extension_id", None)
     app.logger.info("extension_id [%s]" % extension_id)
 
@@ -60,7 +103,10 @@ def midas_slicerpackages_extension_list():
     app.logger.info("slicer_revision [%s]" % slicer_revision)
 
     if extension_id is None and not all([arch, operating_system, productname, slicer_revision]):
-        return flask.abort(404)
+        raise MidasAPIException(f"Parameters {*names_1,} or parameters {*names_2,} must be set")
+
+    if extension_id is not None and not _is_valid_objectid(extension_id):
+        raise MidasAPIException(f"Parameter 'extension_id' must be a valid ObjectID. Value is {extension_id}")
 
     # Retrieve extension metadata
     url = "{host}/api/v1/app/{app_id}/extension".format(
@@ -73,10 +119,15 @@ def midas_slicerpackages_extension_list():
         "arch": arch,
         "baseName": productname
     }
-    app.logger.info("GET {url}?{params}".format(url=url, params=params))
     result = get(url, params)
+
+    app.logger.info(f"GET {result.request.url}")
     if result.status_code not in (200, 201):
-        return flask.abort(404)
+        message = None
+        if result.headers.get('content-type') == 'application/json':
+            message = result.json().get("message", None)
+        raise MidasAPIException(
+            [f"Server Error. Failed to perform GET {result.request.url}.", message], result.status_code)
 
     return {
         "stat": "ok",
