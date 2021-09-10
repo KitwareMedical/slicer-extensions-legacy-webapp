@@ -133,4 +133,7 @@ def download_extension():
 def getApp(path):
     if IS_DEV:
         return proxy(WEBPACK_DEV_SERVER_HOST, request.path)
-    return app.send_static_file(path)
+    if path.startswith("midas3/slicerappstore"):
+        return app.send_static_file("index.html")
+    else:
+        return app.send_static_file(path)
