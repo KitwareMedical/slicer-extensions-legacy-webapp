@@ -92,7 +92,7 @@ def retrieve_extension_metadata():
             "repository_type": extension["meta"]["repository_type"],
             "repository_url": extension["meta"]["repository_url"],
             "revision": extension["meta"]["revision"],
-            "screenshots": extension["meta"]["screenshots"],
+            "screenshots": extension["meta"].get("screenshots", ""),
             "slicer_revision": extension["meta"]["app_revision"],
             }]
         })
