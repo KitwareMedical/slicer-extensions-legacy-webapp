@@ -133,4 +133,5 @@ def download_extension():
 def getApp(path):
     if IS_DEV:
         return proxy(WEBPACK_DEV_SERVER_HOST, request.path)
-    return app.send_static_file(path)
+    else:
+        return proxy("https://extensions.slicer.org/", request.path)
