@@ -35,7 +35,15 @@ def proxy(host, path):
 
 
 @app.route("/midas3/api/json")
-def retrieve_extension_metadata():
+def midas_api_json():
+    method = request.args.get("method", None)
+    if method == "midas.slicerpackages.extension.list":
+        return midas_slicerpackages_extension_list()
+    else:
+        return flask.abort(404)
+
+
+def midas_slicerpackages_extension_list():
     extension_id = request.args.get("extension_id", None)
     app.logger.info("extension_id [%s]" % extension_id)
 
