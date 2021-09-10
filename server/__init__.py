@@ -2,7 +2,7 @@ import flask
 
 from os import environ
 
-from flask import json, Flask, request, Response, stream_with_context
+from flask import Flask, request, Response, stream_with_context
 from requests import get
 
 
@@ -78,7 +78,7 @@ def midas_slicerpackages_extension_list():
     if result.status_code not in (200, 201):
         return flask.abort(404)
 
-    return json.dumps({
+    return {
         "stat": "ok",
         "code": "0",
         "message": "",
@@ -102,7 +102,7 @@ def midas_slicerpackages_extension_list():
             "screenshots": extension["meta"].get("screenshots", ""),
             "slicer_revision": extension["meta"]["app_revision"],
             } for extension in result.json()]
-        })
+        }
 
 
 @app.route("/midas3/download")
