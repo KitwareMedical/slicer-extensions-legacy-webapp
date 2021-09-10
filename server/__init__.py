@@ -77,7 +77,6 @@ def midas_slicerpackages_extension_list():
     result = get(url, params)
     if result.status_code not in (200, 201):
         return flask.abort(404)
-    extension = result.json()[0]
 
     return json.dumps({
         "stat": "ok",
@@ -102,7 +101,7 @@ def midas_slicerpackages_extension_list():
             "revision": extension["meta"]["revision"],
             "screenshots": extension["meta"].get("screenshots", ""),
             "slicer_revision": extension["meta"]["app_revision"],
-            }]
+            } for extension in result.json()]
         })
 
 
