@@ -8,7 +8,7 @@ from werkzeug.datastructures import Headers
 
 
 IS_DEV = environ["FLASK_ENV"] == "development"
-WEBPACK_DEV_SERVER_HOST = environ.get("SLICER_EXTENSIONS_WEBAPP_SERVER_HOST", "http://localhost:8080")
+WEBPACK_DEV_SERVER_HOST = environ.get("SLICER_EXTENSIONS_WEBAPP_URL", "http://localhost:8080")
 
 SLICER_PACKAGE_SERVER_APP_ID = "5f4474d0e1d8c75dfc705482"
 SLICER_PACKAGE_SERVER_HOST = "https://slicer-packages.kitware.com"
