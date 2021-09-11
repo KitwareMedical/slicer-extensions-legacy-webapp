@@ -118,38 +118,24 @@ def slicer_package_server_get(route, exception_class, **kwargs):
 def midas_slicerpackages_extension_list():
     names_1 = ["extension_id"]
     names_2 = ["arch", "os", "productname", "slicer_revision"]
+    params = {name: request.args.get(name, None) for name in names_1 + names_2}
 
-    extension_id = request.args.get("extension_id", None)
-    app.logger.info("extension_id [%s]" % extension_id)
-
-    arch = request.args.get("arch", None)
-    app.logger.info("arch [%s]" % arch)
-
-    operating_system = request.args.get("os", None)
-    app.logger.info("operating_system [%s]" % operating_system)
-
-    productname = request.args.get("productname", None)
-    app.logger.info("productname [%s]" % productname)
-
-    slicer_revision = request.args.get("slicer_revision", None)
-    app.logger.info("slicer_revision [%s]" % slicer_revision)
-
-    if extension_id is None and not all([arch, operating_system, productname, slicer_revision]):
+    if all([not value for value in params.values()]):
         raise MidasAPIException(f"Parameters {*names_1,} or parameters {*names_2,} must be set")
 
-    if extension_id is not None and not _is_valid_objectid(extension_id):
-        raise MidasAPIException(f"Parameter 'extension_id' must be a valid ObjectID. Value is {extension_id}")
+    if params["extension_id"] is not None and not _is_valid_objectid(params["extension_id"]):
+        raise MidasAPIException(f"Parameter 'extension_id' must be a valid ObjectID. Value is {params['extension_id']}")
 
     # Retrieve extension metadata
     result = slicer_package_server_get(
         f"/app/{SLICER_PACKAGE_SERVER_APP_ID}/extension",
         MidasAPIException,
         params={
-            "extension_id": extension_id,
-            "app_revision": slicer_revision,
-            "os": operating_system,
-            "arch": arch,
-            "baseName": productname
+            "extension_id": params["extension_id"],
+            "app_revision": params["slicer_revision"],
+            "os": params["os"],
+            "arch": params["arch"],
+            "baseName": params["productname"]
         }
     )
 
