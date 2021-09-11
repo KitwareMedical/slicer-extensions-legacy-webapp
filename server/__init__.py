@@ -4,6 +4,7 @@ from os import environ
 
 from flask import Flask, request, Response, stream_with_context
 from requests import get
+from werkzeug.datastructures import Headers
 
 
 IS_DEV = environ["FLASK_ENV"] == "development"
@@ -190,15 +191,19 @@ def download_extension():
 
     # Retrieve extension files
     result = slicer_package_server_get(f"/item/{extension_id}/files", MidasException)
-    file_id = result.json()[0]['_id']
+    file = result.json()[0]
 
     # Since existing release do not set the QNetworkRequest::FollowRedirectsAttribute
     # to true, we explicitly stream the download through this server.
-    req = slicer_package_server_get(f"/file/{file_id}/download", MidasException, stream=True)
+    req = slicer_package_server_get(f"/file/{file['_id']}/download", MidasException, stream=True)
+
+    headers = Headers()
+    headers.set("Content-Disposition", "attachment", filename=file["name"])
+    headers.set("Content-Length", file["size"])
 
     return Response(
         stream_with_context(req.iter_content(chunk_size=1024)),
-        content_type=req.headers['content-type'])
+        content_type=req.headers['content-type'], headers=headers)
 
 
 @app.route("/", defaults={"path": "index.html"})
