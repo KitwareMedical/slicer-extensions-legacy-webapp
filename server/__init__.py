@@ -47,11 +47,24 @@ def _is_valid_objectid(oid):
     return True
 
 
-class MidasAPIException(Exception):
+class MidasException(Exception):
     def __init__(self, message, code=None):
         super().__init__()
         self.message = " ".join(filter(bool, message)) if not isinstance(message, str) else message
         self.code = code
+
+
+@app.errorhandler(MidasException)
+def midas_exception(exc):
+    http_status = exc.code
+    if http_status is None:
+        http_status = 400
+    return exc.message, http_status
+
+
+class MidasAPIException(MidasException):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 @app.errorhandler(MidasAPIException)
@@ -83,6 +96,24 @@ def midas_api_json():
     return method_function()
 
 
+def slicer_package_server_get(route, exception_class, **kwargs):
+    result = get(f"{SLICER_PACKAGE_SERVER_HOST}/api/v1{route}", **kwargs)
+    app.logger.info(f"GET {result.request.url}")
+
+    if result.status_code not in (200, 201):
+
+        message = None
+        if result.headers.get('content-type') == 'application/json':
+            message = result.json().get("message", None)
+
+        raise exception_class([
+            f"Server Error. Failed to perform GET {result.request.url}.",
+            message,
+        ], code=result.status_code)
+
+    return result
+
+
 def midas_slicerpackages_extension_list():
     names_1 = ["extension_id"]
     names_2 = ["arch", "os", "productname", "slicer_revision"]
@@ -109,25 +140,17 @@ def midas_slicerpackages_extension_list():
         raise MidasAPIException(f"Parameter 'extension_id' must be a valid ObjectID. Value is {extension_id}")
 
     # Retrieve extension metadata
-    url = "{host}/api/v1/app/{app_id}/extension".format(
-        host=SLICER_PACKAGE_SERVER_HOST,
-        app_id=SLICER_PACKAGE_SERVER_APP_ID)
-    params = {
-        "extension_id": extension_id,
-        "app_revision": slicer_revision,
-        "os": operating_system,
-        "arch": arch,
-        "baseName": productname
-    }
-    result = get(url, params)
-
-    app.logger.info(f"GET {result.request.url}")
-    if result.status_code not in (200, 201):
-        message = None
-        if result.headers.get('content-type') == 'application/json':
-            message = result.json().get("message", None)
-        raise MidasAPIException(
-            [f"Server Error. Failed to perform GET {result.request.url}.", message], result.status_code)
+    result = slicer_package_server_get(
+        f"/app/{SLICER_PACKAGE_SERVER_APP_ID}/extension",
+        MidasAPIException,
+        params={
+            "extension_id": extension_id,
+            "app_revision": slicer_revision,
+            "os": operating_system,
+            "arch": arch,
+            "baseName": productname
+        }
+    )
 
     return {
         "stat": "ok",
@@ -160,27 +183,19 @@ def midas_slicerpackages_extension_list():
 def download_extension():
     extension_id = request.args.get("items", None)
     if extension_id is None:
-        return flask.abort(404)
+        raise MidasException("Parameter 'items' must be set.")
+
+    if not _is_valid_objectid(extension_id):
+        raise MidasException(f"Parameter 'items' must be a valid ObjectID. Value is {extension_id}")
 
     # Retrieve extension files
-    url = "{host}/api/v1/item/{extension_id}/files".format(
-        host=SLICER_PACKAGE_SERVER_HOST,
-        extension_id=extension_id)
-    app.logger.info("GET %s" % url)
-    result = get(url)
-    if result.status_code not in (200, 201):
-        return flask.abort(404)
+    result = slicer_package_server_get(f"/item/{extension_id}/files", MidasException)
     file_id = result.json()[0]['_id']
-
-    # Set download URL
-    download_url = "{host}/api/v1/file/{file_id}/download".format(
-        host=SLICER_PACKAGE_SERVER_HOST,
-        file_id=file_id)
-    app.logger.info("GET %s" % download_url)
 
     # Since existing release do not set the QNetworkRequest::FollowRedirectsAttribute
     # to true, we explicitly stream the download through this server.
-    req = get(download_url, stream=True)
+    req = slicer_package_server_get(f"/file/{file_id}/download", MidasException, stream=True)
+
     return Response(
         stream_with_context(req.iter_content(chunk_size=1024)),
         content_type=req.headers['content-type'])
